@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output (keep dist/ tracked for the action)
+# dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+*.log
+npm-debug.log*
+
+# Test
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+parse-packages.js
