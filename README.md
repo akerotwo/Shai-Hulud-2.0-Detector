@@ -751,12 +751,13 @@ When running locally or in non-GitHub CI systems:
 
 | Variable | Maps To | Type | Default 
 |----------|---------|---------|---------|
-| `--fail-on-critical` | `fail-on-critical` input | `boolean` | `true`
-| `--fail-on-high` | `fail-on-high` input | `boolean` | `false` 
-| `--fail-on-any` | `fail-on-any` input | `boolean` | `false`
-| `--scan-lockfiles` | `scan-lockfiles` input | `boolean` | `true`
-| `--output-format` | `output-format` input | `'text' \| 'json' \| 'sarif'` | `json` 
-| `--working-directory` | `working-directory` input | `string` | `.`
+| `--fail-on-critical` | `fail-on-critical` input | `boolean` | `true` |
+| `--fail-on-high` | `fail-on-high` input | `boolean` | `false` |
+| `--fail-on-any` | `fail-on-any` input | `boolean` | `false` |
+| `--scan-lockfiles` | `scan-lockfiles` input | `boolean` | `true` |
+| `--scan-node-modules` | `scan-node-modules` input | `boolean` | `false` |
+| `--output-format` | `output-format` input | `'text' \| 'json' \| 'sarif'` | `json` |
+| `--working-directory` | `working-directory` input | `string` | `.` |
 
 ### Environment Variables
 
@@ -764,12 +765,13 @@ When running locally or in non-GitHub CI systems:
 
 | Variable | Maps To | Type | Default 
 |----------|---------|---------|---------|
-| `INPUT_FAIL_ON_CRITICAL` | `fail-on-critical` input | `boolean` | `true`
-| `INPUT_FAIL_ON_HIGH` | `fail-on-high` input | `boolean` | `false`
-| `INPUT_FAIL_ON_ANY` | `fail-on-any` input | `boolean` | `false`
-| `INPUT_SCAN_LOCKFILES` | `scan-lockfiles` input | `boolean` | `true`
-| `INPUT_OUTPUT_FORMAT` | `output-format` input | `'text' \| 'json' \| 'sarif'` | `json` 
-| `INPUT_WORKING_DIRECTORY` | `working-directory` input | `string` | `.`
+| `INPUT_FAIL_ON_CRITICAL` | `fail-on-critical` input | `boolean` | `true` |
+| `INPUT_FAIL_ON_HIGH` | `fail-on-high` input | `boolean` | `false` |
+| `INPUT_FAIL_ON_ANY` | `fail-on-any` input | `boolean` | `false` |
+| `INPUT_SCAN_LOCKFILES` | `scan-lockfiles` input | `boolean` | `true` |
+| `INPUT_SCAN_NODE_MODULES` | `scan-node-modules` input | `boolean` | `false` |
+| `INPUT_OUTPUT_FORMAT` | `output-format` input | `'text' \| 'json' \| 'sarif'` | `json` | 
+| `INPUT_WORKING_DIRECTORY` | `working-directory` input | `string` | `.` |
 
 ---
 
