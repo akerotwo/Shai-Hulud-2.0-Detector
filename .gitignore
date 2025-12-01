@@ -41,3 +41,6 @@ coverage/
 # Misc
 *.bak
 *.orig
+
+# Marketing
+index.htm
