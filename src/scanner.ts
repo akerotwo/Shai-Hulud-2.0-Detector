@@ -140,6 +140,66 @@ const SHAI_HULUD_REPO_PATTERNS = [
 	{ pattern: /sha1hulud/i, description: 'SHA1HULUD variant' },
 ];
 
+// =============================================================================
+// LEGITIMATE SECURITY RESEARCH REFERENCES (ALLOWLIST)
+// =============================================================================
+// These patterns match legitimate security vendor paths that reference
+// "shai-hulud" in the context of security research, IOC databases, and
+// threat intelligence. These should NOT trigger false positives.
+
+const LEGITIMATE_SECURITY_REFERENCES = [
+	// This detector itself - various forms it appears in
+	/gensecaihq\/Shai-Hulud-2\.0-Detector[^\s]*/gi,
+	/shai-hulud-detector/gi,
+	/shai-hulud-2\.0-detector/gi,
+	/Shai-Hulud-2\.0-Detector/gi,
+	// Detector's own package.json keyword entry (JSON context)
+	/"shai-hulud"/gi,
+	// Description mentioning Shai-Hulud attack (security tool context)
+	/detect\s+Shai-Hulud[^"']*/gi,
+	/Shai-Hulud[^"']*attack/gi,
+	/Shai-Hulud[^"']*detector/gi,
+	/Shai-Hulud[^"']*supply\s+chain/gi,
+
+	// Datadog Security Labs IOC database
+	/DataDog\/indicators-of-compromise[^\s]*/gi,
+	/datadog\/indicators-of-compromise[^\s]*/gi,
+	/indicators-of-compromise\/.*shai-hulud[^\s]*/gi,
+
+	// Other security vendors' IOC/threat intel references
+	/wiz-sec\/[^\s]*shai[^\s]*/gi,
+	/AikidoSec\/[^\s]*shai[^\s]*/gi,
+	/aikido-security[^\s]*/gi,
+	/ReversingLabs\/[^\s]*/gi,
+	/socket\.dev\/[^\s]*/gi,
+	/StepSecurity\/[^\s]*/gi,
+	/helixguard[^\s]*/gi,
+
+	// Security blog posts and advisories
+	/securitylabs\.datadoghq\.com[^\s]*/gi,
+	/blog\.aikido\.(dev|io)[^\s]*/gi,
+	/wiz\.io\/blog[^\s]*/gi,
+	/socket\.dev\/blog[^\s]*/gi,
+
+	// General security research paths containing shai-hulud as subject
+	/security-research\/.*shai-hulud[^\s]*/gi,
+	/threat-intel\/.*shai-hulud[^\s]*/gi,
+	/ioc[-_]?database\/.*shai-hulud[^\s]*/gi,
+];
+
+/**
+ * Remove legitimate security research references from content before pattern matching.
+ * This prevents false positives when security tools reference "shai-hulud" in the
+ * context of threat intelligence, IOC databases, or security research.
+ */
+function stripLegitimateSecurityReferences(content: string): string {
+	let result = content;
+	for (const pattern of LEGITIMATE_SECURITY_REFERENCES) {
+		result = result.replace(pattern, '');
+	}
+	return result;
+}
+
 // Malicious runner patterns in GitHub Actions
 const MALICIOUS_RUNNER_PATTERNS = [
 	{
@@ -1087,15 +1147,13 @@ export function checkMaliciousRunners(directory: string): SecurityFinding[] {
 						}
 					}
 
-					// Check for Shai-Hulud repo patterns in workflow (excluding detector references)
+					// Check for Shai-Hulud repo patterns in workflow (excluding legitimate security references)
 					for (const { pattern, description } of SHAI_HULUD_REPO_PATTERNS) {
 						if (pattern.test(content)) {
-							// Additional check: make sure it's not just referencing the detector
-							const contentWithoutDetector = content.replace(
-								/gensecaihq\/Shai-Hulud-2\.0-Detector[^\s]*/gi,
-								'',
-							);
-							if (pattern.test(contentWithoutDetector)) {
+							// Strip legitimate security research references before checking
+							const contentWithoutLegitRefs =
+								stripLegitimateSecurityReferences(content);
+							if (pattern.test(contentWithoutLegitRefs)) {
 								findings.push({
 									type: 'shai-hulud-repo',
 									severity: 'critical',
@@ -1133,24 +1191,19 @@ export function checkShaiHuludRepos(directory: string): SecurityFinding[] {
 	if (fs.existsSync(gitConfigPath)) {
 		try {
 			const content = fs.readFileSync(gitConfigPath, 'utf8');
+			// Strip legitimate security research references before checking
+			const contentWithoutLegitRefs =
+				stripLegitimateSecurityReferences(content);
 
-			// Skip if this is the detector's own repository
-			if (
-				content.includes('Shai-Hulud-2.0-Detector') ||
-				content.includes('gensecaihq')
-			) {
-				// This is the detector's own repo, skip
-			} else {
-				for (const { pattern, description } of SHAI_HULUD_REPO_PATTERNS) {
-					if (pattern.test(content)) {
-						findings.push({
-							type: 'shai-hulud-repo',
-							severity: 'critical',
-							title: `Shai-Hulud repository reference in git config`,
-							description: `${description}. Your repository may have been configured to push to an attacker-controlled remote.`,
-							location: gitConfigPath,
-						});
-					}
+			for (const { pattern, description } of SHAI_HULUD_REPO_PATTERNS) {
+				if (pattern.test(contentWithoutLegitRefs)) {
+					findings.push({
+						type: 'shai-hulud-repo',
+						severity: 'critical',
+						title: `Shai-Hulud repository reference in git config`,
+						description: `${description}. Your repository may have been configured to push to an attacker-controlled remote.`,
+						location: gitConfigPath,
+					});
 				}
 			}
 		} catch {
@@ -1163,30 +1216,19 @@ export function checkShaiHuludRepos(directory: string): SecurityFinding[] {
 	for (const file of packageJsonFiles) {
 		try {
 			const content = fs.readFileSync(file, 'utf8');
-
-			// Skip if this is the detector's own package.json
-			if (
-				content.includes('gensecaihq/Shai-Hulud-2.0-Detector') ||
-				content.includes('shai-hulud-detector')
-			) {
-				continue;
-			}
+			// Strip legitimate security research references before checking
+			const contentWithoutLegitRefs =
+				stripLegitimateSecurityReferences(content);
 
 			for (const { pattern, description } of SHAI_HULUD_REPO_PATTERNS) {
-				if (pattern.test(content)) {
-					// Make sure it's not just a reference to the detector
-					const contentWithoutDetector = content
-						.replace(/gensecaihq\/Shai-Hulud-2\.0-Detector/gi, '')
-						.replace(/shai-hulud-detector/gi, '');
-					if (pattern.test(contentWithoutDetector)) {
-						findings.push({
-							type: 'shai-hulud-repo',
-							severity: 'high',
-							title: `Shai-Hulud reference in package.json`,
-							description: `${description}. Package may be configured to reference attacker infrastructure.`,
-							location: file,
-						});
-					}
+				if (pattern.test(contentWithoutLegitRefs)) {
+					findings.push({
+						type: 'shai-hulud-repo',
+						severity: 'high',
+						title: `Shai-Hulud reference in package.json`,
+						description: `${description}. Package may be configured to reference attacker infrastructure.`,
+						location: file,
+					});
 				}
 			}
 		} catch {
