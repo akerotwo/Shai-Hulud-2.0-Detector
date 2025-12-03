@@ -68,6 +68,29 @@ export interface SecurityFinding {
     line?: number;
     evidence?: string;
 }
+/**
+ * Allowlist entry for excluding false positives from scan results.
+ * All specified fields must match (AND logic). Omitted fields act as wildcards.
+ * @see Discussion #17: https://github.com/gensecaihq/Shai-Hulud-2.0-Detector/discussions/17
+ */
+export interface AllowlistEntry {
+    /** Finding type to match (e.g., 'suspicious-script', 'compromised-package') */
+    type?: SecurityFindingType;
+    /** Severity level to match */
+    severity?: 'critical' | 'high' | 'medium' | 'low';
+    /** Exact title match */
+    title?: string;
+    /** Substring match on title */
+    titleContains?: string;
+    /** Exact location/file path match */
+    location?: string;
+    /** Substring match on location */
+    locationContains?: string;
+    /** Substring match on evidence field */
+    evidenceContains?: string;
+    /** Documentation comment (not used in matching) */
+    comment?: string;
+}
 export interface ScriptCheckResult {
     hasSuspiciousScripts: boolean;
     findings: SecurityFinding[];
@@ -133,6 +156,12 @@ export interface Inputs {
     scanNodeModules: boolean;
     outputFormat: 'text' | 'json' | 'sarif';
     workingDirectory: string;
+    /** Path to allowlist JSON file for excluding false positives */
+    allowlistPath: string;
+    /** Skip allowlist processing entirely (for security audits) */
+    ignoreAllowlist: boolean;
+    /** Show allowlisted items as warnings instead of hiding them */
+    warnOnAllowlist: boolean;
 }
 export interface SarifResult {
     $schema: string;

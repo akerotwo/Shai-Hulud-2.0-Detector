@@ -34,6 +34,18 @@ inputs:
     description: 'Directory to scan (defaults to repository root)'
     required: false
     default: '.'
+  allowlist-path:
+    description: 'Path to allowlist JSON file for excluding false positives (default: .shai-hulud-allowlist.json)'
+    required: false
+    default: '.shai-hulud-allowlist.json'
+  ignore-allowlist:
+    description: 'Ignore allowlist file and report all findings (useful for security audits)'
+    required: false
+    default: 'false'
+  warn-on-allowlist:
+    description: 'Show allowlisted items as warnings instead of hiding them completely'
+    required: false
+    default: 'false'
 
 outputs:
   affected-count:
@@ -50,6 +62,8 @@ outputs:
     description: 'JSON array of security findings (suspicious scripts, exfiltration, runners, etc.)'
   sarif-file:
     description: 'Path to SARIF report file (when output-format is sarif)'
+  allowlisted-count:
+    description: 'Number of findings excluded by allowlist'
 
 runs:
   using: 'node20'

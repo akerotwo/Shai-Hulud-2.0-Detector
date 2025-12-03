@@ -10,7 +10,12 @@ import {
 	getMasterPackagesInfo,
 	runScan,
 } from "./scanner";
-import type { Inputs, ScanSummary } from "./types";
+import {
+	loadAllowlist,
+	applyAllowlist,
+	type AllowlistResult,
+} from "./allowlist";
+import type { Inputs, ScanSummary, AllowlistEntry } from "./types";
 
 // =============================================================================
 // DISCLAIMER
@@ -111,6 +116,10 @@ function getInputs(inputs: Inputs): Inputs {
 		),
 		outputFormat,
 		workingDirectory,
+		// Allowlist configuration (Discussion #17)
+		allowlistPath: getStr("allowlist-path", inputs.allowlistPath, ".shai-hulud-allowlist.json"),
+		ignoreAllowlist: getBool("ignore-allowlist", inputs.ignoreAllowlist, false),
+		warnOnAllowlist: getBool("warn-on-allowlist", inputs.warnOnAllowlist, false),
 	};
 }
 
@@ -162,6 +171,19 @@ async function run(): Promise<void> {
 				type: "string",
 				description: "Directory to scan",
 			})
+			// Allowlist options for excluding false positives (Discussion #17)
+			.option("allowlist-path", {
+				type: "string",
+				description: "Path to allowlist JSON file for excluding false positives",
+			})
+			.option("ignore-allowlist", {
+				type: "boolean",
+				description: "Ignore allowlist and report all findings (for security audits)",
+			})
+			.option("warn-on-allowlist", {
+				type: "boolean",
+				description: "Show allowlisted items as warnings instead of hiding them",
+			})
 			.parseSync();
 
 		// Build inputs from CLI flags first, then fall back to environment variables.
@@ -190,6 +212,19 @@ async function run(): Promise<void> {
 				(argv["working-directory"] as string | undefined) ??
 				process.env.INPUT_WORKING_DIRECTORY ??
 				process.cwd(),
+			// Allowlist configuration (Discussion #17)
+			allowlistPath:
+				(argv["allowlist-path"] as string | undefined) ??
+				process.env.INPUT_ALLOWLIST_PATH ??
+				".shai-hulud-allowlist.json",
+			ignoreAllowlist:
+				argv["ignore-allowlist"] ??
+				parseBoolEnv(process.env.INPUT_IGNORE_ALLOWLIST) ??
+				false,
+			warnOnAllowlist:
+				argv["warn-on-allowlist"] ??
+				parseBoolEnv(process.env.INPUT_WARN_ON_ALLOWLIST) ??
+				false,
 		};
 
 		core.info('');
@@ -207,6 +242,9 @@ async function run(): Promise<void> {
 		core.info(`- Scan Node Modules: ${inputs.scanNodeModules}`);
 		core.info(`- Output Format: ${inputs.outputFormat}`);
 		core.info(`- Working Directory: ${inputs.workingDirectory}`);
+		core.info(`- Allowlist Path: ${inputs.allowlistPath}`);
+		core.info(`- Ignore Allowlist: ${inputs.ignoreAllowlist}`);
+		core.info(`- Warn on Allowlist: ${inputs.warnOnAllowlist}`);
 		core.info('');
 
 		// Display database info
@@ -228,6 +266,75 @@ async function run(): Promise<void> {
 		// Run the scan
 		core.info('Starting scan...');
 		const summary = runScan(workDir, inputs.scanLockfiles, inputs.scanNodeModules);
+
+		// =========================================================================
+		// ALLOWLIST PROCESSING (Discussion #17)
+		// =========================================================================
+		// This block handles the allowlist feature for excluding false positives.
+		// It runs AFTER the scan but BEFORE output/annotations so that all
+		// downstream logic uses the filtered results automatically.
+		// =========================================================================
+		let allowlistResult: AllowlistResult | null = null;
+		let allowlist: AllowlistEntry[] = [];
+
+		if (!inputs.ignoreAllowlist) {
+			const allowlistPath = path.resolve(workDir, inputs.allowlistPath);
+
+			try {
+				allowlist = loadAllowlist(allowlistPath);
+				if (allowlist.length > 0) {
+					core.info(`Loaded ${allowlist.length} allowlist entries from ${allowlistPath}`);
+				}
+			} catch (error) {
+				// FAIL on malformed allowlist - safest approach per @buggedcom
+				// Silently ignoring a broken allowlist could let critical findings slip through
+				core.setFailed(
+					`${(error as Error).message}. Fix the JSON syntax or remove the file.`
+				);
+				return;
+			}
+
+			// Apply allowlist if we have entries
+			if (allowlist.length > 0) {
+				allowlistResult = applyAllowlist(
+					summary.securityFindings,
+					summary.results,
+					allowlist
+				);
+
+				// Update summary with filtered results
+				// This ensures all downstream code (output, annotations, failure logic)
+				// uses the filtered data automatically
+				summary.securityFindings = allowlistResult.filteredFindings;
+				summary.results = allowlistResult.filteredResults;
+				summary.affectedCount = allowlistResult.filteredResults.filter(r => r.affected).length;
+
+				const totalAllowlisted =
+					allowlistResult.allowlistedFindings.length +
+					allowlistResult.allowlistedResults.length;
+
+				if (totalAllowlisted > 0) {
+					core.info(`${totalAllowlisted} finding(s) matched allowlist and were excluded`);
+
+					// If warn-on-allowlist is set, show excluded items as warnings
+					if (inputs.warnOnAllowlist) {
+						for (const { finding, matchedBy } of allowlistResult.allowlistedFindings) {
+							const reason = matchedBy.comment || JSON.stringify(matchedBy);
+							core.warning(`[ALLOWLISTED] ${finding.title} (matched: ${reason})`);
+						}
+						for (const { result, matchedBy } of allowlistResult.allowlistedResults) {
+							const reason = matchedBy.comment || JSON.stringify(matchedBy);
+							core.warning(`[ALLOWLISTED] ${result.package}@${result.version} (matched: ${reason})`);
+						}
+					}
+				}
+			}
+		} else {
+			core.info('Allowlist ignored (--ignore-allowlist flag set)');
+		}
+		// =========================================================================
+		// END ALLOWLIST PROCESSING
+		// =========================================================================
 
 		// Output results based on format
 		switch (inputs.outputFormat) {
@@ -260,6 +367,13 @@ async function run(): Promise<void> {
         core.setOutput('status', hasIssues ? 'affected' : 'clean');
         core.setOutput('results', JSON.stringify(summary.results));
         core.setOutput('security-findings', JSON.stringify(summary.securityFindings));
+		// Allowlist output (Discussion #17)
+		core.setOutput(
+			'allowlisted-count',
+			allowlistResult
+				? (allowlistResult.allowlistedFindings.length + allowlistResult.allowlistedResults.length).toString()
+				: '0'
+		);
 
 		// Create annotations for affected packages
 		if (summary.affectedCount > 0) {
