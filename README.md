@@ -1268,8 +1268,11 @@ A huge thank you to all the community members who have contributed to this proje
 | <img src=https://github.com/Gaurav0.png width=32 height=32 alt=@Gaurav0> | [@Gaurav0](https://github.com/Gaurav0) | Issue reports |
 | <img src=https://github.com/jeis4wpi.png width=32 height=32 alt=@jeis4wpi> | [@jeis4wpi](https://github.com/jeis4wpi) | Issue reports |
 | <img src=https://github.com/julia-infocaster.png width=32 height=32 alt=@julia-infocaster> | [@julia-infocaster](https://github.com/julia-infocaster) | Code contributions, Pull requests |
+| <img src=https://github.com/julien1619.png width=32 height=32 alt=@julien1619> | [@julien1619](https://github.com/julien1619) | Pull requests |
+| <img src=https://github.com/kevinmui-atg.png width=32 height=32 alt=@kevinmui-atg> | [@kevinmui-atg](https://github.com/kevinmui-atg) | Pull requests |
 | <img src=https://github.com/linhungsam.png width=32 height=32 alt=@linhungsam> | [@linhungsam](https://github.com/linhungsam) | Discussions |
 | <img src=https://github.com/luca-cond.png width=32 height=32 alt=@luca-cond> | [@luca-cond](https://github.com/luca-cond) | Discussions |
+| <img src=https://github.com/lucascco.png width=32 height=32 alt=@lucascco> | [@lucascco](https://github.com/lucascco) | Pull requests |
 | <img src=https://github.com/maxie7.png width=32 height=32 alt=@maxie7> | [@maxie7](https://github.com/maxie7) | Code contributions, Discussions, Pull requests |
 | <img src=https://github.com/sampov2.png width=32 height=32 alt=@sampov2> | [@sampov2](https://github.com/sampov2) | Discussions |
 | <img src=https://github.com/seezee.png width=32 height=32 alt=@seezee> | [@seezee](https://github.com/seezee) | Issue reports |
