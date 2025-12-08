@@ -77,15 +77,15 @@ export declare function scanBunLock(filePath: string): ScanResult[];
  * @param scanNodeModules Whether to include node_modules directories in the scan. Defaults to false.
  * @returns Array of absolute lockfile paths.
  */
-export declare function findLockfiles(directory: string, scanNodeModules?: boolean): string[];
+export declare function findLockfiles(directory: string, scanNodeModules?: boolean, maxDepth?: number): string[];
 /**
- * Recursively locate package.json files up to depth 5 (monorepo friendly), skipping
+ * Recursively locate package.json files up to a configurable depth (monorepo friendly), skipping
  * node_modules and dot-prefixed directories.
  * @param directory Root search directory.
  * @param scanNodeModules Whether to include node_modules directories in the scan. Defaults to false.
  * @returns Array of package.json paths.
  */
-export declare function findPackageJsonFiles(directory: string, scanNodeModules?: boolean): string[];
+export declare function findPackageJsonFiles(directory: string, scanNodeModules?: boolean, maxDepth?: number): string[];
 /**
  * Inspect scripts in a package.json for indicators of compromise (IoCs) and general
  * suspicious execution patterns (curl|sh, wget|sh, eval, base64 decode, inline node -e, etc.).
