@@ -360,8 +360,6 @@ You can also run the detector locally for development or CI systems without GitH
 # Clone and run
 git clone https://github.com/gensecaihq/Shai-Hulud-2.0-Detector.git
 cd Shai-Hulud-2.0-Detector
-npm install
-npm run build
 ```
 
 #### Set Options
@@ -1247,7 +1245,7 @@ git clone https://github.com/YOUR_USERNAME/Shai-Hulud-2.0-Detector.git
 cd Shai-Hulud-2.0-Detector
 
 # 2. Install dependencies
-npm install
+npm ci
 
 # 3. Make changes to src/
 
