@@ -1352,6 +1352,7 @@ A huge thank you to all the community members who have contributed to this proje
 
 | | Contributor | Contributions |
 |---|-------------|---------------|
+| <img src=https://github.com/akeroachrisa.png width=32 height=32 alt=@akeroachrisa> | [@akeroachrisa](https://github.com/akeroachrisa) | Pull requests |
 | <img src=https://github.com/albe.png width=32 height=32 alt=@albe> | [@albe](https://github.com/albe) | Code contributions |
 | <img src=https://github.com/alokemajumder.png width=32 height=32 alt=@alokemajumder> | [@alokemajumder](https://github.com/alokemajumder) | Code contributions |
 | <img src=https://github.com/giulietta-dev.png width=32 height=32 alt=@giulietta-dev> | [@giulietta-dev](https://github.com/giulietta-dev) | Code contributions |
