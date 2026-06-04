@@ -1,0 +1,36 @@
+name: Reset Test and Staging on Sprint Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  reset-branches:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'sprint/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.AKERO_TWO_FULL_REPO_ACCESS }}
+
+      - name: Reset test to main
+        uses: akerotwo/github-actions-workflows/actions/reset@main
+        with:
+          source: 'main'
+          target: 'test'
+          userEmail: 'dev@netnatives.co.uk'
+          userName: 'Akero Actions'
+
+      - name: Reset staging to main
+        uses: akerotwo/github-actions-workflows/actions/reset@main
+        with:
+          source: 'main'
+          target: 'staging'
+          userEmail: 'dev@netnatives.co.uk'
+          userName: 'Akero Actions'
